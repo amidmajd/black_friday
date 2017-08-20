@@ -8,6 +8,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 from matplotlib import pyplot as plt
 from sklearn import neighbors
+from sklearn import linear_model
+from sklearn.neural_network import MLPRegressor
 sns.set()
 
 
@@ -37,7 +39,6 @@ data = data.drop('Purchase', axis=1)
 #     sns.regplot(data.loc[::100, col], target.iloc[::100])
 # plt.show()
 
-# x_train, x_test, y_train, y_test = train_test_split(data, target, test_size=0.2)
 
 # tmp = []
 # for i in range(5, 30):
@@ -54,6 +55,7 @@ best_cols = ['City_Category', 'Product_Category_1', 'Product_Category_2',
 
 model = RandomForestRegressor(n_jobs=-1, max_depth=20, n_estimators=30)
 model.fit(data.loc[:, best_cols], target)
+
 
 ft_imp = []
 cols = best_cols
@@ -75,3 +77,13 @@ submission.Product_ID = tmp_test.Product_ID
 
 submission.Purchase = model.predict(test.loc[:, best_cols])
 submission.to_csv('generated_sub.csv', index=False)
+
+
+
+
+# x_train, x_test, y_train, y_test = train_test_split(data.loc[:,best_cols], target)
+# print('running NN...')
+# nn = MLPRegressor(hidden_layer_sizes=(20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20), verbose=True, max_iter=2000, learning_rate_init=0.001)
+# nn.fit(x_train, y_train)
+# print('NN score :', nn.score(x_test, y_test))
+# NN score : 0.607794654222
