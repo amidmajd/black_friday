@@ -55,7 +55,7 @@ best_cols = ['City_Category', 'Product_Category_1', 'Product_Category_2',
 
 model = RandomForestRegressor(n_jobs=-1, max_depth=20, n_estimators=30)
 model.fit(data.loc[:, best_cols], target)
-
+# 70 %  accuracy
 
 ft_imp = []
 cols = best_cols

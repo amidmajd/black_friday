@@ -6,11 +6,11 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 sns.set()
-np.random.seed(100)
+# np.random.seed(100)
 
 # 300 Step ==> error = 42532289877.2
-n_iter = 10
-lr_rate = 0.01
+n_iter = 200
+lr_rate = 0.001
 keep_p = 1
 batch_size = 200
 log_dir = 'logs/model/'
@@ -67,6 +67,8 @@ cols = ['User_ID', 'Gender', 'Age', 'Occupation', 'City_Category',
        'pid_4_f_lett_0', 'pid_4_f_lett_1', 'pid_4_f_lett_2', 'pid_4_f_lett_3',
        'pid_4_f_lett_4', 'pid_2_l_lett', 'pid'] # 17 + 1
 
+# best_cols = ['City_Category', 'Product_Category_1', 'Product_Category_2',
+#              'Product_Category_3','pid_4_f_lett_1', 'pid']
 
 dataSet.Occupation = normalize(dataSet.Occupation)
 dataSet.pid = normalize(dataSet.pid)
@@ -83,12 +85,12 @@ with tf.name_scope('inputs'):
 keep_prob = tf.placeholder(dtype=tf.float32, name='keep_prob')
 
 ####network####
-l1 = add_layer(X, 17, 128, 'l1', tf.nn.relu)
-l2 = add_layer(l1, 128, 512, 'l2', tf.nn.relu)
-l3 = add_layer(l2, 512, 1024, 'l3', tf.nn.relu)
-l4 = add_layer(l3, 1024, 1024, 'l4', tf.nn.relu)
-l5 = add_layer(l4, 1024, 128, 'l5', tf.nn.relu)
-Y_hat = tf.reshape(add_layer(l5, 128, 1, 'predictions'), [-1])
+l1 = add_layer(X, 17, 30, 'l1', tf.nn.relu)
+l2 = add_layer(l1, 30, 30, 'l2', tf.nn.relu)
+l3 = add_layer(l2, 30, 45, 'l3', tf.nn.relu)
+# l4 = add_layer(l3, 1024, 1024, 'l4', tf.nn.relu)
+# l5 = add_layer(l4, 1024, 128, 'l5', tf.nn.relu)
+Y_hat = tf.reshape(add_layer(l3, 45, 1, 'predictions'), [-1])
 ####network####
 
 # net = {
