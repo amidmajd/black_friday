@@ -8,8 +8,8 @@ from sklearn.decomposition import PCA
 sns.set()
 np.random.seed(100)
 
-n_iter = 100
-lr_rate = 0.001
+n_iter = 60    # 330
+lr_rate = 0.01
 keep_p = 1
 batch_size = 100
 log_dir = 'logs/model/'
@@ -17,42 +17,42 @@ log_dir = 'logs/model/'
 def normalize(data):
     me = data.mean()
     std = data.std()
-    return (data - me) / std, me, std
+    return (data - me) / std
 
-def unormalize(data, me, std):
-    return (data * std) + me
-
-
-def feed(X, net):
-    l1 = tf.nn.dropout(tf.nn.relu(tf.nn.xw_plus_b(X, net[1]['W'], net[1]['b'])), keep_prob)
-    l2 = tf.nn.dropout(tf.nn.relu(tf.nn.xw_plus_b(l1, net[2]['W'], net[2]['b'])), keep_prob)
-    l3 = tf.nn.dropout(tf.nn.relu(tf.nn.xw_plus_b(l2, net[3]['W'], net[3]['b'])), keep_prob)
-    l4 = tf.nn.xw_plus_b(l3, net[4]['W'], net[4]['b'])
-    return l4
+# def unormalize(data, me, std):
+#     return (data * std) + me
 
 
-# def add_layer(input, in_size, o_size, layer_name, active_func=None):
-#     with tf.name_scope(layer_name):
-#         W = tf.Variable(tf.truncated_normal(shape = [in_size, o_size],
-#                                             dtype = tf.float32,
-#                                             name = 'W'))
-#         tf.summary.histogram(layer_name + '/W', W)
-#         b = tf.Variable(tf.truncated_normal(shape = [o_size],
-#                                             dtype = tf.float32,
-#                                             name = 'b'))
-#         tf.summary.histogram(layer_name + '/b', W)
-#
-#         layer = tf.nn.dropout(tf.nn.xw_plus_b(input, W, b), keep_prob)
-#
-#     if active_func is None:
-#         return layer
-#     else:
-#         return active_func(layer)
+# def feed(X, net):
+#     l1 = tf.nn.dropout(tf.nn.relu(tf.nn.xw_plus_b(X, net[1]['W'], net[1]['b'])), keep_prob)
+#     l2 = tf.nn.dropout(tf.nn.relu(tf.nn.xw_plus_b(l1, net[2]['W'], net[2]['b'])), keep_prob)
+#     l3 = tf.nn.dropout(tf.nn.relu(tf.nn.xw_plus_b(l2, net[3]['W'], net[3]['b'])), keep_prob)
+#     l4 = tf.nn.xw_plus_b(l3, net[4]['W'], net[4]['b'])
+#     return l4
+
+
+def add_layer(input, in_size, o_size, layer_name, active_func=None):
+    with tf.name_scope(layer_name):
+        W = tf.Variable(tf.truncated_normal(shape = [in_size, o_size],
+                                            dtype = tf.float32,
+                                            name = 'W'))
+        tf.summary.histogram(layer_name + '/W', W)
+        b = tf.Variable(tf.truncated_normal(shape = [o_size],
+                                            dtype = tf.float32,
+                                            name = 'b'))
+        tf.summary.histogram(layer_name + '/b', W)
+
+        layer = tf.nn.dropout(tf.nn.xw_plus_b(input, W, b), keep_prob)
+
+    if active_func is None:
+        return layer
+    else:
+        return active_func(layer)
+
 
 testDataset = pd.read_csv('../test_cleaned.csv')
-testDataset.Occupation, _, __ = normalize(testDataset.Occupation)
-testDataset.pid, _, __ = normalize(testDataset.pid)
-
+testDataset.Occupation = normalize(testDataset.Occupation)
+testDataset.pid = normalize(testDataset.pid)
 
 dataSet = pd.read_csv('../train_cleaned.csv')
 cols = ['User_ID', 'Gender', 'Age', 'Occupation', 'City_Category',
@@ -62,10 +62,10 @@ cols = ['User_ID', 'Gender', 'Age', 'Occupation', 'City_Category',
        'pid_4_f_lett_4', 'pid_2_l_lett', 'pid'] # 17 + 1
 # best_cols = ['City_Category', 'Product_Category_1', 'Product_Category_2',
 #              'Product_Category_3', 'pid_4_f_lett_1', 'pid', 'Purchase']
-# dataSet = dataSet.loc[:, best_cols]
-dataSet.Occupation, _, __ = normalize(dataSet.Occupation)
-# dataSet.Purchase, p_me, p_std = normalize(dataSet.Purchase)
-dataSet.pid, _, __ = normalize(dataSet.pid)
+# dataSet = dataSet.loc[:, best_cols
+
+dataSet.Occupation = normalize(dataSet.Occupation)
+dataSet.pid = normalize(dataSet.pid)
 
 y_data = dataSet.Purchase
 x_data = dataSet.drop('Purchase', axis=1)
@@ -79,42 +79,41 @@ with tf.name_scope('inputs'):
     Y = tf.placeholder(shape=[None], dtype=tf.float32, name='target')
 keep_prob = tf.placeholder(dtype=tf.float32, name='keep_prob')
 ####network####
-# l1 = add_layer(X, 17, 30, 'l1', tf.nn.relu)
-# l2 = add_layer(l1, 30, 30, 'l2', tf.nn.relu)
-# l3 = add_layer(l2, 30, 45, 'l3', tf.nn.relu)
-# l4 = add_layer(l3, 45, 20, 'l4', tf.nn.relu)
-# Y_hat = add_layer(l4, 20, 1, 'predictions')
+l1 = add_layer(X, 17, 30, 'l1', tf.nn.relu)
+l2 = add_layer(l1, 30, 30, 'l2', tf.nn.relu)
+l3 = add_layer(l2, 30, 45, 'l3', tf.nn.relu)
+Y_hat = tf.reshape(add_layer(l3, 45, 1, 'predictions'), [-1])
 
-net = {
-    1: {
-        'W': tf.Variable(tf.truncated_normal(shape=[17, 30], dtype=tf.float32)),
-        'b': tf.Variable(tf.truncated_normal(shape=[30], dtype=tf.float32))
-    },
-    2: {
-        'W': tf.Variable(tf.truncated_normal(shape=[30, 30], dtype=tf.float32)),
-        'b': tf.Variable(tf.truncated_normal(shape=[30], dtype=tf.float32))
-    },
-    3: {
-        'W': tf.Variable(tf.truncated_normal(shape=[30, 45], dtype=tf.float32)),
-        'b': tf.Variable(tf.truncated_normal(shape=[45], dtype=tf.float32))
-    },
-
-    4: {
-        'W': tf.Variable(tf.truncated_normal(shape=[45, 1], dtype=tf.float32)),
-        'b': tf.Variable(tf.truncated_normal(shape=[1], dtype=tf.float32))
-    }
-}
-Y_hat = tf.reshape(feed(X, net), [-1])
+# net = {
+#     1: {
+#         'W': tf.Variable(tf.truncated_normal(shape=[17, 30], dtype=tf.float32)),
+#         'b': tf.Variable(tf.truncated_normal(shape=[30], dtype=tf.float32))
+#     },
+#     2: {
+#         'W': tf.Variable(tf.truncated_normal(shape=[30, 30], dtype=tf.float32)),
+#         'b': tf.Variable(tf.truncated_normal(shape=[30], dtype=tf.float32))
+#     },
+#     3: {
+#         'W': tf.Variable(tf.truncated_normal(shape=[30, 45], dtype=tf.float32)),
+#         'b': tf.Variable(tf.truncated_normal(shape=[45], dtype=tf.float32))
+#     },
+#
+#     4: {
+#         'W': tf.Variable(tf.truncated_normal(shape=[45, 1], dtype=tf.float32)),
+#         'b': tf.Variable(tf.truncated_normal(shape=[1], dtype=tf.float32))
+#     }
+# }
+# Y_hat = tf.reshape(feed(X, net), [-1])
 ####network####
 
 with tf.name_scope('TRAIN_STEP'):
     cost = tf.reduce_mean(tf.pow(tf.subtract(Y, Y_hat), 2))
     # cost = tf.pow(tf.subtract(Y, Y_hat), 2)
-    rg = 0.1 * tf.nn.l2_loss(net[1]['W'])+ \
-         0.1 * tf.nn.l2_loss(net[3]['W'])+ \
-         0.1 * tf.nn.l2_loss(net[4]['W'])+ \
-         0.1 * tf.nn.l2_loss(net[2]['W'])
-    cost = cost + rg
+    # rg = 0.1 * tf.nn.l2_loss(net[1]['W'])+ \
+    #      0.1 * tf.nn.l2_loss(net[3]['W'])+ \
+    #      0.1 * tf.nn.l2_loss(net[4]['W'])+ \
+    #      0.1 * tf.nn.l2_loss(net[2]['W'])
+    # cost = cost + rg
     tf.summary.scalar('cost', cost)
 
     optimizer = tf.train.AdamOptimizer(lr_rate).minimize(cost)
@@ -126,7 +125,7 @@ merged = tf.summary.merge_all()
 
 feature_dec = PCA(n_components=1)
 one_dim_f = feature_dec.fit_transform(x_test)
-# print(one_dim_f)
+# # print(one_dim_f)
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
 ax.scatter(one_dim_f, y_test)
@@ -136,14 +135,13 @@ with tf.Session() as sess:
     print('Training Process Started...')
     train_writer = tf.summary.FileWriter('logs/train/', sess.graph)
     test_writer = tf.summary.FileWriter('logs/test/', sess.graph)
-    # sess.run(init)
-    # print(np.shape(sess.run(Y_hat, feed_dict={X:x_train[:100], keep_prob:1})))
-    saver.restore(sess, log_dir)
+
+    sess.run(init)
+    # saver.restore(sess, log_dir)
 
     for i in range(n_iter):
         total_c = 0
         for j in range(n_sample // batch_size):
-            # print('    batch {}/{}'.format(j+1,n_sample // batch_size))
             x_batch = x_train[j*batch_size : (j+1)*batch_size]
             y_batch = y_train[j*batch_size : (j+1)*batch_size]
 
